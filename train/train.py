@@ -56,20 +56,60 @@ def _get_train_data_loader(batch_size, training_dir):
 
 
 def train(model, train_loader, epochs, optimizer, loss_fn, device):
-    """
-    This is the training method that is called by the PyTorch training script. The parameters
-    passed are as follows:
-    model        - The PyTorch model that we wish to train.
-    train_loader - The PyTorch DataLoader that should be used during training.
-    epochs       - The total number of epochs to train for.
-    optimizer    - The optimizer to use during training.
-    loss_fn      - The loss function used for training.
-    device       - Where the model and data should be loaded (gpu or cpu).
-    """
+    """Train the model and return the model and loss history
     
-    # TODO: Paste the train() method developed in the notebook here.
-
-    pass
+    Args:
+    -----
+    
+        model (nn.Module):
+            network to be trained by this function
+        train_loader (DataLoader):
+            iterable data loader providing the batched samples
+        epochs (int):
+            number of epochs during which the model should be trained
+        optimizer (torch optimizer):
+            optimizer used to train the model coeffivents. Must be consistent
+            with the passed input model.
+        loss_fun (callable):
+            criterion to be optimized during network training. Can be one of
+            Pytorch loss function or any compatible custom loss function.
+        deviced (torch.device):
+            device (CPU or GPU) on which the model should be trained.
+            
+    Return:
+    -------
+        
+        nn.Module
+            The initial model instance which coefficients were optimised as a 
+            side-effect of this function. The model is returned in ``eval`` mode.
+        list:
+            list of the losses at each training epochs
+            
+    .. note::
+    
+        Calling this function on an already trained model continues its training.
+        It is therfore possible to use several calls of the function with various
+        optimizer parameters to make them evolve along training.
+        
+    """
+    losses = []
+    for epoch in range(1, epochs + 1):
+        model.train()
+        total_loss = 0.
+        for batch in train_loader:  
+            optimizer.zero_grad()
+            batch_X, batch_y = batch
+            batch_X = batch_X.to(device)
+            batch_y = batch_y.to(device)
+            pred_y = model(batch_X)
+            loss = loss_fn(pred_y, batch_y.view_as(pred_y))
+            loss.backward()
+            optimizer.step()
+            total_loss += loss.data.item()
+        print("Epoch: {}, BCELoss: {}".format(epoch, total_loss / len(train_loader)))
+        losses.append(total_loss / len(train_loader))
+    model.eval()
+    return model, losses
 
 
 if __name__ == '__main__':
