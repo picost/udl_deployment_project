@@ -58,6 +58,15 @@ def output_fn(prediction_output, accept):
     return str(prediction_output)
 
 def predict_fn(input_data, model):
+    """Return a floating point number representing the sentiment of the review
+    
+    Args:
+    -----
+    
+        input_data ():
+        
+    
+    """
     print('Inferring sentiment of input data.')
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     if model.word_dict is None:
